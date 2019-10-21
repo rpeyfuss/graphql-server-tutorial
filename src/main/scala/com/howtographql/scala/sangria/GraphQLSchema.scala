@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 import com.howtographql.scala.sangria.models.models._
 import sangria.ast.StringValue
 import sangria.execution.deferred._
-import sangria.macros.derive._
+import sangria.macros.derive.{Interfaces, _}
 import sangria.schema._
 
 object GraphQLSchema {
@@ -24,24 +24,30 @@ object GraphQLSchema {
       case _ => Left(LocalDateTimeCoerceViolation)
     }
   )
+
+  val IdentifiableType = InterfaceType(
+    "Identifiable",
+    fields[Unit, Identifiable](
+      Field("id", IntType, resolve = _.value.id)
+    )
+  )
   //this will automatically map the sangria ObjectType to case class
   //replacing LocalDateTime to GraphQLDateTime
   implicit val LinkType = deriveObjectType[Unit, Link](
+    Interfaces(IdentifiableType),
     ReplaceField("createdAt", Field("createdAt", GraphQLDateTime, resolve = _.value.createdAt))
   )
   implicit val UserType = deriveObjectType[Unit, User](
+    Interfaces(IdentifiableType),
     ReplaceField("createdAt", Field("createdAt", GraphQLDateTime, resolve = _.value.createdAt))
   )
   implicit val VoteType = deriveObjectType[Unit, Vote](
+    Interfaces(IdentifiableType),
     ReplaceField("createdAt", Field("createdAt", GraphQLDateTime, resolve = _.value.createdAt))
   )
 
   val Id = Argument("id", IntType)
   val Ids = Argument("ids", ListInputType(IntType))
-
-  implicit val linkHasId = HasId[Link, Int](_.id)
-  implicit val userHasId = HasId[User, Int](_.id)
-  implicit val voteHasId = HasId[Vote, Int](_.id)
 
   val linksFetcher = Fetcher ((ctx: MyContext, ids: Seq[Int]) => ctx.dao.getLinks(ids)
   )

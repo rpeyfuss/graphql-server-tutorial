@@ -17,12 +17,12 @@ object DBSchema {
     ts => DateTimeUtilities.intToDate(ts),
   )
   class LinksTable(tag: Tag) extends Table[Link](tag, "LINKS") {
-
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def url = column[String]("URL")
     def description = column[String]("DESCRIPTION")
+    def postedBy = column[Int]("USER_ID")
     def createdAt = column[LocalDateTime]("CREATED_AT")
-    def * = (id, url, description, createdAt).mapTo[Link]
+    def * = (id, url, description, postedBy, createdAt).mapTo[Link]
   }
   val Links = TableQuery[LinksTable]
 
@@ -38,10 +38,10 @@ object DBSchema {
 
   class VotesTable(tag: Tag) extends Table[Vote](tag, "VOTES") {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
-    def createdAt = column[LocalDateTime]("CREATED_AT")
     def userId = column[Int]("USER_ID")
     def linkId = column[Int]("LINK_ID")
-    def * = (id, createdAt, userId, linkId).mapTo[Vote]
+    def createdAt = column[LocalDateTime]("CREATED_AT")
+    def * = (id, userId, linkId, createdAt).mapTo[Vote]
   }
   val Votes = TableQuery[VotesTable]
 
@@ -51,19 +51,19 @@ object DBSchema {
   val databaseSetup = DBIO.seq(
     Links.schema.create,
     Links forceInsertAll Seq(
-      Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial", LocalDateTime.of(2019, 1,1, 1, 1,1)),
-      Link(2, "http://graphql.org", "Official GraphQL web page", LocalDateTime.of(2019, 1,1, 1, 1,1)),
-      Link(3, "https://facebook.github.io/graphql/", "GraphQL specification", LocalDateTime.of(2019, 1,1, 1, 1,1))
+      Link(1, "http://howtographql.com", "Awesome community driven GraphQL tutorial", 1),
+      Link(2, "http://graphql.org", "Official GraphQL web page", 2),
+      Link(3, "https://facebook.github.io/graphql/", "GraphQL specification", 1)
     ),
     Users.schema.create,
     Users forceInsertAll Seq(
-      User(1, "John Doe", "john.doe@example.com", "abcdef", LocalDateTime.of(2019, 1,1, 1, 1,1)),
-      User(2, "Mary Jane", "mary.jane@example.com", "abcdef", LocalDateTime.of(2019, 1,1, 1, 1,1))
+      User(1, "John Doe", "john.doe@example.com", "abcdef"),
+      User(2, "Mary Jane", "mary.jane@example.com", "abcdef")
     ),
     Votes.schema.create,
     Votes forceInsertAll Seq(
-     Vote(1,LocalDateTime.of(2019, 1,1, 1, 1,1), 1, 1),
-     Vote(2,LocalDateTime.of(2019, 1,1, 1, 1,1), 1, 2)
+     Vote(1, 1, 1),
+     Vote(2, 1, 2)
     )
   )
 
